@@ -25,13 +25,19 @@ public class DiamondCombineHoe extends CombineHoe {
         return "Diamond Combine Hoe";
     }
 
+    public boolean hasGlow() {
+        return true;
+    }
+
     @Override
     public Recipe getMainRecipe() {
         ShapedRecipe recipe = new ShapedRecipe(getKey(), toItemStack());
+        IronCombineHoe hoe = new IronCombineHoe();
+        registerCustomIngredients(hoe);
         recipe.shape("SSS", "HCW", "SSS");
         recipe.setIngredient('S', Material.STRING);
         recipe.setIngredient('H', Material.DIAMOND_HOE);
-        recipe.setIngredient('C', Material.CHEST);
+        recipe.setIngredient('C', hoe.getMaterial());
         recipe.setIngredient('W', Material.DIAMOND_SWORD);
         return recipe;
     }

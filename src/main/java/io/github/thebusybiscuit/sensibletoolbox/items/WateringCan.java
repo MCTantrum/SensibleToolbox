@@ -61,6 +61,10 @@ public class WateringCan extends BaseSTBItem {
         this.waterLevel = level;
     }
 
+    public boolean hasGlow() {
+        return true;
+    }
+
     @Override
     public YamlConfiguration freeze() {
         YamlConfiguration res = super.freeze();
@@ -191,8 +195,8 @@ public class WateringCan extends BaseSTBItem {
     private boolean maybeGrowGrass(Block b) {
         for (BlockFace face : STBUtil.getAllHorizontalFaces()) {
             Block b1 = b.getRelative(face);
-            if (b1.getType() == Material.GRASS) {
-                b.setType(Material.GRASS);
+            if (b1.getType() == Material.SHORT_GRASS) {
+                b.setType(Material.SHORT_GRASS);
                 return true;
             }
         }

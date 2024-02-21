@@ -29,12 +29,9 @@ import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
 import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.recipes.MinecraftRecipe;
 
-public final class SlimefunBridge implements SlimefunAddon {
-
-    private final SensibleToolboxPlugin plugin;
+public final class SlimefunBridge {
 
     public SlimefunBridge(@Nonnull SensibleToolboxPlugin plugin) {
-        this.plugin = plugin;
 
         ItemGroup items = new ItemGroup(new NamespacedKey(plugin, "items"), new CustomItemStack(Material.SHEARS, "&7STB - Items"));
         ItemGroup blocks = new ItemGroup(new NamespacedKey(plugin, "blocks"), new CustomItemStack(Material.PURPLE_STAINED_GLASS, "&7STB - Blocks and Machines"));
@@ -107,6 +104,14 @@ public final class SlimefunBridge implements SlimefunAddon {
                 List<ItemStack> fuels = ((Generator) item).getFuelInformation();
                 sfItem = new STBSlimefunGenerator(category, itemStack, recipeType, recipe.toArray(new ItemStack[0]), fuels);
             } else {
+
+                if (item.getMaterial() == Material.COMPARATOR ||
+                        item.getMaterial() == Material.REPEATER ||
+                        item.getMaterial() == Material.BREWING_STAND ||
+                        item.getMaterial() == Material.GREEN_CARPET) {
+                    category = items;
+                }
+
                 sfItem = new STBSlimefunItem(category, itemStack, recipeType, recipe.toArray(new ItemStack[0]));
             }
 
@@ -114,7 +119,7 @@ public final class SlimefunBridge implements SlimefunAddon {
                 sfItem.setRecipeOutput(r.getResult());
             }
 
-            sfItem.register(this);
+            sfItem.register(plugin);
         }
 
         RecipeType masher = new RecipeType(new NamespacedKey(plugin, "masher"), SlimefunItem.getById("STB_MASHER").getItem());
@@ -140,7 +145,7 @@ public final class SlimefunBridge implements SlimefunAddon {
             item.setRecipeType(recipeType);
         }
     }
-
+/*
     @Override
     public JavaPlugin getJavaPlugin() {
         return plugin;
@@ -149,6 +154,6 @@ public final class SlimefunBridge implements SlimefunAddon {
     @Override
     public String getBugTrackerURL() {
         return "https://github.com/Slimefun/SensibleToolbox/issues";
-    }
+    }*/
 
 }

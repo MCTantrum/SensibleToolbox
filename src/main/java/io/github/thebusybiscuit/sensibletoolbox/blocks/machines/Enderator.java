@@ -1,11 +1,15 @@
 package io.github.thebusybiscuit.sensibletoolbox.blocks.machines;
 
-import java.util.Arrays;
-
+import io.github.thebusybiscuit.sensibletoolbox.api.items.BaseSTBItem;
+import io.github.thebusybiscuit.sensibletoolbox.api.recipes.FuelItems;
+import io.github.thebusybiscuit.sensibletoolbox.api.recipes.FuelValues;
+import io.github.thebusybiscuit.sensibletoolbox.items.components.IntegratedCircuit;
+import io.github.thebusybiscuit.sensibletoolbox.items.energycells.FiftyKEnergyCell;
+import io.github.thebusybiscuit.sensibletoolbox.items.upgrades.RegulatorUpgrade;
+import io.github.thebusybiscuit.sensibletoolbox.utils.STBUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.Effect;
 import org.bukkit.Material;
-import org.bukkit.Tag;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.ItemStack;
@@ -13,80 +17,29 @@ import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import io.github.thebusybiscuit.sensibletoolbox.api.items.BaseSTBItem;
-import io.github.thebusybiscuit.sensibletoolbox.api.recipes.FuelItems;
-import io.github.thebusybiscuit.sensibletoolbox.api.recipes.FuelValues;
-import io.github.thebusybiscuit.sensibletoolbox.items.components.SimpleCircuit;
-import io.github.thebusybiscuit.sensibletoolbox.items.energycells.TenKEnergyCell;
-import io.github.thebusybiscuit.sensibletoolbox.items.upgrades.RegulatorUpgrade;
-import io.github.thebusybiscuit.sensibletoolbox.utils.STBUtil;
+import java.util.Arrays;
 
-public class BioEngine extends Generator {
+public class Enderator extends Generator {
 
     private static final int TICK_FREQUENCY = 10;
-    private static final FuelItems fuelItems = new FuelItems();
     private final double slowBurnThreshold;
+    private static final FuelItems fuelItems = new FuelItems();
+
     private FuelValues currentFuel;
 
     static {
-        fuelItems.addFuel(new ItemStack(Material.ROTTEN_FLESH), true, 2, 60);
-        fuelItems.addFuel(new ItemStack(Material.SPIDER_EYE), true, 2.5, 60);
-        fuelItems.addFuel(new ItemStack(Material.BONE), true, 2, 60);
-        fuelItems.addFuel(new ItemStack(Material.INK_SAC), true, 3, 60);
-        fuelItems.addFuel(new ItemStack(Material.COCOA_BEANS), true, 3, 60);
-        fuelItems.addFuel(new ItemStack(Material.SLIME_BALL), true, 6, 80);
-
-        for (Material leaves : Tag.LEAVES.getValues()) {
-            fuelItems.addFuel(new ItemStack(leaves), true, 6, 40);
-        }
-
-        for (Material sapling : Tag.SAPLINGS.getValues()) {
-            fuelItems.addFuel(new ItemStack(sapling), true, 6, 60);
-        }
-
-        fuelItems.addFuel(new ItemStack(Material.SEAGRASS), true, 4, 80);
-        fuelItems.addFuel(new ItemStack(Material.TALL_GRASS), true, 4, 80);
-        fuelItems.addFuel(new ItemStack(Material.APPLE), true, 10, 100);
-        fuelItems.addFuel(new ItemStack(Material.SWEET_BERRIES), true, 10, 100);
-        fuelItems.addFuel(new ItemStack(Material.KELP), true, 10, 100);
-        fuelItems.addFuel(new ItemStack(Material.BEETROOT), true, 10, 100);
-        fuelItems.addFuel(new ItemStack(Material.BEETROOT_SEEDS), true, 10, 100);
-        fuelItems.addFuel(new ItemStack(Material.MELON_SLICE), true, 10, 100);
-        fuelItems.addFuel(new ItemStack(Material.MELON_SEEDS), true, 10, 100);
-        fuelItems.addFuel(new ItemStack(Material.MELON), true, 10, 900);
-        fuelItems.addFuel(new ItemStack(Material.PUMPKIN), true, 10, 100);
-        fuelItems.addFuel(new ItemStack(Material.PUMPKIN_SEEDS), true, 10, 100);
-        fuelItems.addFuel(new ItemStack(Material.WHEAT), true, 10, 100);
-        fuelItems.addFuel(new ItemStack(Material.WHEAT_SEEDS), true, 10, 100);
-        fuelItems.addFuel(new ItemStack(Material.CARROT), true, 10, 100);
-        fuelItems.addFuel(new ItemStack(Material.POTATO), true, 10, 100);
-        fuelItems.addFuel(new ItemStack(Material.SUGAR_CANE), true, 8, 100);
-        fuelItems.addFuel(new ItemStack(Material.NETHER_WART), true, 12, 140);
-        fuelItems.addFuel(new ItemStack(Material.DIRT), true, 0.5, 20);
-        fuelItems.addFuel(new ItemStack(Material.GRASS_BLOCK), true, 0.5, 20);
-
-        for (Material flower : Tag.SMALL_FLOWERS.getValues()) {
-            fuelItems.addFuel(new ItemStack(flower), true, 11, 80);
-        }
-
-        for (Material flower : Tag.TALL_FLOWERS.getValues()) {
-            fuelItems.addFuel(new ItemStack(flower), true, 11, 80);
-        }
-
-        fuelItems.addFuel(new ItemStack(Material.RED_MUSHROOM), true, 11, 80);
-        fuelItems.addFuel(new ItemStack(Material.BROWN_MUSHROOM), true, 11, 80);
-        fuelItems.addFuel(new ItemStack(Material.VINE), true, 8, 80);
-        fuelItems.addFuel(new ItemStack(Material.CACTUS), true, 8, 100);
-        fuelItems.addFuel(new ItemStack(Material.LILY_PAD), true, 8, 80);
+        fuelItems.addFuel(new ItemStack(Material.DRAGON_EGG), false, 1000, 5000);
+        fuelItems.addFuel(new ItemStack(Material.DRAGON_HEAD), false, 1000, 5000);
+        fuelItems.addFuel(new ItemStack(Material.DRAGON_BREATH), false, 100, 500);
     }
 
-    public BioEngine() {
+    public Enderator() {
         super();
         currentFuel = null;
         slowBurnThreshold = getMaxCharge() * 0.75;
     }
 
-    public BioEngine(ConfigurationSection conf) {
+    public Enderator(ConfigurationSection conf) {
         super(conf);
         if (getProgress() > 0) {
             currentFuel = fuelItems.get(getInventory().getItem(getProgressItemSlot()));
@@ -122,7 +75,7 @@ public class BioEngine extends Generator {
     @Override
     protected void playActiveParticleEffect() {
         if (getTicksLived() % 20 == 0) {
-            getLocation().getWorld().playEffect(getLocation(), Effect.STEP_SOUND, Material.JUNGLE_LEAVES);
+            getLocation().getWorld().playEffect(getLocation(), Effect.ENDER_SIGNAL, 1);
         }
     }
 
@@ -143,53 +96,57 @@ public class BioEngine extends Generator {
 
     @Override
     public Material getMaterial() {
-        return Material.LIME_TERRACOTTA;
+        return Material.END_STONE_BRICKS;
     }
 
     @Override
     public String getItemName() {
-        return "Bio Engine";
+        return "Enderator";
     }
 
     @Override
     public String[] getLore() {
-        return new String[] { "Converts organic Materials into power", };
+        return new String[] { "Converts End Dragon items into power" };
     }
 
     @Override
     protected boolean isValidUpgrade(HumanEntity player, BaseSTBItem upgrade) {
-        if (!super.isValidUpgrade(player, upgrade))
+        if (!super.isValidUpgrade(player, upgrade)) {
             return false;
+        }
+
         if (!(upgrade instanceof RegulatorUpgrade)) {
             STBUtil.complain(player, upgrade.getItemName() + " is not accepted by a " + getItemName());
             return false;
         }
+
         return true;
     }
 
     @Override
     public Recipe getMainRecipe() {
-        SimpleCircuit sc = new SimpleCircuit();
-        TenKEnergyCell cell = new TenKEnergyCell();
+        IntegratedCircuit sc = new IntegratedCircuit();
+        FiftyKEnergyCell cell = new FiftyKEnergyCell();
         registerCustomIngredients(sc, cell);
         ShapedRecipe recipe = new ShapedRecipe(getKey(), toItemStack());
-        recipe.shape("CCC", "SES", "RGR");
+        recipe.shape("III", "SCE", "RGR");
+        recipe.setIngredient('I', Material.DRAGON_BREATH);
         recipe.setIngredient('S', sc.getMaterial());
         recipe.setIngredient('E', cell.getMaterial());
-        recipe.setIngredient('C', Material.CAULDRON);
-        recipe.setIngredient('G', Material.GOLD_INGOT);
-        recipe.setIngredient('R', Material.REDSTONE);
+        recipe.setIngredient('C', Material.DRAGON_EGG);
+        recipe.setIngredient('G', Material.ELYTRA);
+        recipe.setIngredient('R', Material.PURPUR_BLOCK);
         return recipe;
     }
 
     @Override
     public int getMaxCharge() {
-        return 2500;
+        return 100000;
     }
 
     @Override
     public int getChargeRate() {
-        return 50;
+        return 100;
     }
 
     @Override
@@ -237,6 +194,7 @@ public class BioEngine extends Generator {
                 }
             }
         }
+
         super.onServerTick();
     }
 
@@ -270,4 +228,5 @@ public class BioEngine extends Generator {
         toProcess.setItemMeta(meta);
         return toProcess;
     }
+
 }

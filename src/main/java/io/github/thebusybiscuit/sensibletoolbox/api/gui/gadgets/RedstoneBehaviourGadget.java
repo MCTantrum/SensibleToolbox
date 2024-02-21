@@ -28,7 +28,13 @@ public class RedstoneBehaviourGadget extends CyclerGadget<RedstoneBehaviour> {
         super(gui, slot, "Redstone Mode");
 
         add(RedstoneBehaviour.IGNORE, ChatColor.GRAY, Material.GUNPOWDER, "Operate regardless of", "redstone signal level");
-        add(RedstoneBehaviour.HIGH, ChatColor.RED, Material.REDSTONE, "Require a redstone", "signal to operate");
+        add(
+            RedstoneBehaviour.HIGH,
+            ChatColor.RED,
+            Material.REDSTONE,
+            "Require a redstone",
+            "signal to operate"
+        );
         add(RedstoneBehaviour.LOW, ChatColor.YELLOW, Material.GLOWSTONE_DUST, "Require no redstone", "signal to operate");
         add(RedstoneBehaviour.PULSED, ChatColor.DARK_AQUA, Material.LAPIS_LAZULI, "Operate once per", "redstone pulse");
         setInitialValue(gui.getOwningBlock().getRedstoneBehaviour());
