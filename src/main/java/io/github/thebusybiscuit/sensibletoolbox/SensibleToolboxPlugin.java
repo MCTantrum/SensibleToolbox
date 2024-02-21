@@ -10,9 +10,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import com.google.common.base.Preconditions;
+import io.github.thebusybiscuit.sensibletoolbox.blocks.machines.Enderator;
 import io.github.thebusybiscuit.sensibletoolbox.items.Jawn;
+import io.github.thebusybiscuit.sensibletoolbox.items.NetheriteCombineHoe;
+import io.github.thebusybiscuit.sensibletoolbox.items.SpongeBlob;
 import io.github.thebusybiscuit.sensibletoolbox.listeners.*;
 import io.github.thebusybiscuit.sensibletoolbox.utils.MagnetoidTask;
+import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
@@ -162,7 +166,7 @@ import me.desht.dhutils.configuration.ConfigurationManager;
 import me.desht.dhutils.text.LogUtils;
 import me.desht.dhutils.text.MessagePager;
 
-public class SensibleToolboxPlugin extends JavaPlugin implements ConfigurationListener {
+public class SensibleToolboxPlugin extends JavaPlugin implements SlimefunAddon, ConfigurationListener {
 
     private static SensibleToolboxPlugin instance = null;
     private final CommandManager commandManager = new CommandManager(this);
@@ -188,7 +192,6 @@ public class SensibleToolboxPlugin extends JavaPlugin implements ConfigurationLi
     public void onEnable() {
         instance = this;
 
-        // We wanna ensure that the Server uses a compatible version of Minecraft
         if (isVersionUnsupported()) {
             getServer().getPluginManager().disablePlugin(this);
             return;
@@ -365,6 +368,7 @@ public class SensibleToolboxPlugin extends JavaPlugin implements ConfigurationLi
         itemRegistry.registerItem(new IronCombineHoe(), this, configPrefix, permissionNode);
         itemRegistry.registerItem(new GoldCombineHoe(), this, configPrefix, permissionNode);
         itemRegistry.registerItem(new DiamondCombineHoe(), this, configPrefix, permissionNode);
+        itemRegistry.registerItem(new NetheriteCombineHoe(), this, configPrefix, permissionNode);
         itemRegistry.registerItem(new TrashCan(), this, configPrefix, permissionNode);
         itemRegistry.registerItem(new PaintBrush(), this, configPrefix, permissionNode);
         itemRegistry.registerItem(new PaintRoller(), this, configPrefix, permissionNode);
@@ -403,12 +407,14 @@ public class SensibleToolboxPlugin extends JavaPlugin implements ConfigurationLi
         itemRegistry.registerItem(new RegulatorUpgrade(), this, configPrefix, permissionNode);
         itemRegistry.registerItem(new ThoroughnessUpgrade(), this, configPrefix, permissionNode);
         itemRegistry.registerItem(new HeatEngine(), this, configPrefix, permissionNode);
+        itemRegistry.registerItem(new Enderator(), this, configPrefix, permissionNode);
         itemRegistry.registerItem(new BasicSolarCell(), this, configPrefix, permissionNode);
         itemRegistry.registerItem(new DenseSolar(), this, configPrefix, permissionNode);
         itemRegistry.registerItem(new RecipeBook(), this, configPrefix, permissionNode);
         itemRegistry.registerItem(new AdvancedRecipeBook(), this, configPrefix, permissionNode);
         itemRegistry.registerItem(new Multimeter(), this, configPrefix, permissionNode);
         itemRegistry.registerItem(new Jawn(), this, configPrefix, permissionNode);
+        itemRegistry.registerItem(new SpongeBlob(), this, configPrefix, permissionNode);
         itemRegistry.registerItem(new BigStorageUnit(), this, configPrefix, permissionNode);
         itemRegistry.registerItem(new HyperStorageUnit(), this, configPrefix, permissionNode);
         itemRegistry.registerItem(new Pump(), this, configPrefix, permissionNode);
@@ -655,4 +661,16 @@ public class SensibleToolboxPlugin extends JavaPlugin implements ConfigurationLi
     public boolean isGlowingEnabled() {
         return isProtocolLibEnabled() && getConfig().getBoolean("options.glowing_items");
     }
+
+
+    @Override
+    public JavaPlugin getJavaPlugin() {
+        return SensibleToolboxPlugin.instance;
+    }
+
+    @Override
+    public String getBugTrackerURL() {
+        return "https://github.com/Slimefun/SensibleToolbox/issues";
+    }
+
 }

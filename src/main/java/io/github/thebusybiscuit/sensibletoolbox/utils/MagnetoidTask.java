@@ -28,9 +28,6 @@ public class MagnetoidTask extends BukkitRunnable {
     public void run() {
         for (Player p : parent.getServer().getOnlinePlayers()) {
             ItemStack m = getMagnetoid(p);
-            if (m != null ) {
-                return;
-            }
         }
     }
 

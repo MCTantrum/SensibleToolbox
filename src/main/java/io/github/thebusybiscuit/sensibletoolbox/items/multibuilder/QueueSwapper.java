@@ -60,15 +60,8 @@ class QueueSwapper extends BukkitRunnable {
                 if (slot == -1) {
                     // player is out of materials to swap: scan the queue and remove any other
                     // records for this player & material, to avoid constant inventory rescanning
-                    Iterator<SwapRecord> iter = queue.iterator();
 
-                    while (iter.hasNext()) {
-                        SwapRecord r = iter.next();
-
-                        if (r.getPlayer().equals(rec.getPlayer()) && r.getTarget() == rec.getTarget()) {
-                            iter.remove();
-                        }
-                    }
+                    queue.removeIf(r -> r.getPlayer().equals(rec.getPlayer()) && r.getTarget() == rec.getTarget());
                     continue;
                 }
             }

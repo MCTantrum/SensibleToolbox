@@ -5,13 +5,12 @@ import io.github.thebusybiscuit.sensibletoolbox.items.components.EnergizedIronIn
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.protection.Interaction;
 
-import me.desht.dhutils.Debugger;
+import me.mrCookieSlime.Slimefun.api.BlockStorage;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
@@ -19,6 +18,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.scheduler.BukkitRunnable;
 
 public class Jawn extends BaseSTBItem {
 
@@ -32,7 +32,7 @@ public class Jawn extends BaseSTBItem {
 
     @Override
     public Material getMaterial() {
-        return Material.FEATHER;
+        return Material.BONE;
     }
 
     @Override
@@ -42,7 +42,7 @@ public class Jawn extends BaseSTBItem {
 
     @Override
     public String[] getLore() {
-        return new String[]{"Use on placed head items", "to instantly pick up. Works", "for any type of head.", "R-Click: " + ChatColor.WHITE + "Break and Collect"};
+        return new String[]{"Use on placed head items", "to instantly pick up. Works", "for any type of head.", "L-Click: " + ChatColor.WHITE + "Break and Collect"};
     }
 
     @Override
@@ -62,25 +62,34 @@ public class Jawn extends BaseSTBItem {
         return recipe;
     }
 
+
     @Override
     public void onInteractItem(PlayerInteractEvent event) {
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            event.setCancelled(true);
+        }
+
+        if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
             Block block = event.getClickedBlock();
             Player player = event.getPlayer();
-            Block blockbelow = block.getLocation().getBlock().getRelative(BlockFace.DOWN);
 
-            if (Slimefun.getProtectionManager().hasPermission(event.getPlayer(), block, Interaction.BREAK_BLOCK)
-                && (block.getType() == Material.PLAYER_HEAD || block.getType() == Material.PLAYER_WALL_HEAD)
-                // PREVENT THE DAMN EG DUPE smh
-                && blockbelow.getType() != Material.OAK_LEAVES) {
-                    BlockBreakEvent e = new BlockBreakEvent(block, player);
-
+            if (block != null && (block.getType() == Material.PLAYER_HEAD || block.getType() == Material.PLAYER_WALL_HEAD)) {
+                if (Slimefun.getProtectionManager().hasPermission(player, block, Interaction.BREAK_BLOCK)) {
                     event.setCancelled(true);
-                    Bukkit.getPluginManager().callEvent(e);
-                    block.setType(Material.AIR);
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            BlockBreakEvent e = new BlockBreakEvent(block, player);
+                            Bukkit.getPluginManager().callEvent(e);
+                            BlockStorage.clearBlockInfo(block);
+                            block.setType(Material.AIR);
+                        }
+                    }.runTaskLater(getProviderPlugin(), 2);
 
+                }
             }
         }
     }
 }
+
 

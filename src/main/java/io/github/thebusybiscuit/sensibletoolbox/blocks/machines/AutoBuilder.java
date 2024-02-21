@@ -3,6 +3,10 @@ package io.github.thebusybiscuit.sensibletoolbox.blocks.machines;
 import javax.annotation.Nonnull;
 
 import com.google.common.base.Preconditions;
+
+import io.github.thebusybiscuit.sensibletoolbox.SensibleToolboxPlugin;
+import me.angeschossen.lands.api.integration.LandsIntegration;
+import me.angeschossen.lands.api.land.Area;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -34,11 +38,11 @@ import me.desht.dhutils.MiscUtil;
 import me.desht.dhutils.cuboid.Cuboid;
 import me.desht.dhutils.cuboid.CuboidDirection;
 
-import com.griefdefender.api.GriefDefender;
-import com.griefdefender.api.claim.Claim;
-import com.griefdefender.api.claim.TrustTypes;
 
 public class AutoBuilder extends BaseSTBMachine {
+
+    private static LandsIntegration api = new LandsIntegration(SensibleToolboxPlugin.getInstance());
+
 
     private static final int LANDMARKER_SLOT_1 = 10;
     private static final int LANDMARKER_SLOT_2 = 12;
@@ -154,12 +158,12 @@ public class AutoBuilder extends BaseSTBMachine {
 
     @Override
     public int getMaxCharge() {
-        return 10000;
+        return 25000;
     }
 
     @Override
     public int getChargeRate() {
-        return 50;
+        return 100;
     }
 
     @Override
@@ -258,74 +262,93 @@ public class AutoBuilder extends BaseSTBMachine {
     public void onServerTick() {
         if (isRedstoneActive() && getStatus() == BuilderStatus.RUNNING && workArea != null) {
             Block b = getLocation().getWorld().getBlockAt(buildX, buildY, buildZ);
+            Location l = b.getLocation();
             double scuNeeded = 0.0;
             boolean advanceBuildPos = true;
             OfflinePlayer owner = Bukkit.getOfflinePlayer(getOwner());
-            final Claim claim = GriefDefender.getCore().getClaimAt(b.getLocation());
+            Area area = api.getAreaByLoc(b.getLocation());
 
             switch (getBuildMode()) {
-                case CLEAR:
-                    if (!SensibleToolbox.getProtectionManager().hasPermission(owner, b, Interaction.BREAK_BLOCK) ||
-                            claim != null && !claim.isUserTrusted(this.getOwner(), TrustTypes.BUILDER)) {
+                case CLEAR -> {
+                    if (!SensibleToolbox.getProtectionManager().hasPermission(owner, b, Interaction.BREAK_BLOCK) || area == null) {
                         setStatus(BuilderStatus.NO_PERMISSION);
                         updateAttachedLabelSigns();
                         return;
                     }
-                        // just skip over any "unbreakable" blocks (bedrock, ender portal etc.)
-                        if (b.getType().getHardness() != -1.0F) {
-                            scuNeeded = baseScuPerOp * b.getType().getHardness();
-
-                            if (scuNeeded > getCharge()) {
-                                if (b.getType().getHardness() >= 0F && b.getType().isSolid()) {
-                                    advanceBuildPos = false;
-                                    setStatus(BuilderStatus.HALTED);
-                                    updateAttachedLabelSigns();
-                                }
-
-                            } else if (b.getType() != Material.AIR) {
-                                b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType());
-                                BaseSTBBlock stb = SensibleToolbox.getBlockAt(b.getLocation());
-
-                                if (stb != null) {
-                                    stb.breakBlock(false);
-                                } else {
-                                    b.setType(Material.AIR);
-                                }
-                            } else if (b.getType() == Material.AIR) {
-                                b.getWorld().spawnParticle(Particle.ASH,b.getX() + 0.5, b.getY() + 1.0, b.getZ() + 0.5, 30, 0.75, 0.15, 0.75);
-                            }
+                    // just skip over any "unbreakable" blocks (bedrock, ender portal etc.)
+                    if (b.getType().getHardness() != -1.0F) {
+                        scuNeeded = baseScuPerOp * b.getType().getHardness();
+                        if (b.isLiquid()){
+                            scuNeeded = baseScuPerOp * 5;
                         }
-                    break;
-                case FILL:
-                case WALLS:
-                case FRAME:
-                    if (!SensibleToolbox.getProtectionManager().hasPermission(owner, b, Interaction.PLACE_BLOCK) ||
-                            claim != null && !claim.isUserTrusted(this.getOwner(), TrustTypes.BUILDER)) {
-                        setStatus(BuilderStatus.NO_PERMISSION);
-                        updateAttachedLabelSigns();
-                        return;
-                    }
-                        if (shouldBuildHere()) {
-                            scuNeeded = baseScuPerOp;
-                            if (scuNeeded > getCharge()) {
+
+                        if (scuNeeded > getCharge()) {
+                            if (b.getType().getHardness() >= 0F && (b.getType().isSolid() || b.isLiquid())) {
                                 advanceBuildPos = false;
-                            } else if (b.isEmpty() || b.isLiquid()) {
-                                ItemStack item = fetchNextBuildItem();
-
-                                if (item == null) {
-                                    setStatus(BuilderStatus.NO_INVENTORY);
-                                    advanceBuildPos = false;
-                                    setStatus(BuilderStatus.HALTED);
-                                    updateAttachedLabelSigns();
-                                } else {
-                                    b.setType(item.getType());
-                                    b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType());
-                                }
+                                setStatus(BuilderStatus.HALTED);
+                                updateAttachedLabelSigns();
                             }
-                        } else {
-                            b.getWorld().spawnParticle(Particle.ASH, b.getX() + 0.5, b.getY() + 1.0, b.getZ() + 0.5, 30, 0.75, 0.15, 0.75);
+
+                        } else if (b.getType() != Material.AIR) {
+                            b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType());
+                            BaseSTBBlock stb = SensibleToolbox.getBlockAt(b.getLocation());
+
+                            if (stb != null) {
+                                stb.breakBlock(false);
+                            } else {
+                                b.setType(Material.AIR);
+                            }
+                        } else if (b.getType() == Material.AIR) {
+                            b.getWorld()
+                                .spawnParticle(
+                                    Particle.ASH,
+                                    b.getX() + 0.5,
+                                    b.getY() + 1.0,
+                                    b.getZ() + 0.5,
+                                    30,
+                                    0.75,
+                                    0.15,
+                                    0.75
+                                );
                         }
-                    break;
+                    }
+                }
+                case FILL, WALLS, FRAME -> {
+                    if (!SensibleToolbox.getProtectionManager().hasPermission(owner, b, Interaction.PLACE_BLOCK)  || area == null)  {
+                        setStatus(BuilderStatus.NO_PERMISSION);
+                        updateAttachedLabelSigns();
+                        return;
+                    }
+                    if (shouldBuildHere()) {
+                        scuNeeded = baseScuPerOp;
+                        if (scuNeeded > getCharge()) {
+                            advanceBuildPos = false;
+                        } else if (b.isEmpty() || b.isLiquid()) {
+                            ItemStack item = fetchNextBuildItem();
+
+                            if (item == null) {
+                                setStatus(BuilderStatus.NO_INVENTORY);
+                                advanceBuildPos = false;
+                                setStatus(BuilderStatus.HALTED);
+                                updateAttachedLabelSigns();
+                            } else {
+                                b.setType(item.getType());
+                                b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType());
+                            }
+                        }
+                    } else {
+                        b.getWorld()
+                            .spawnParticle(Particle.ASH,
+                                           b.getX() + 0.5,
+                                           b.getY() + 1.0,
+                                           b.getZ() + 0.5,
+                                           30,
+                                           0.75,
+                                           0.15,
+                                           0.75
+                            );
+                    }
+                }
             }
 
             if (scuNeeded <= getCharge()) {
@@ -357,16 +380,12 @@ public class AutoBuilder extends BaseSTBMachine {
     }
 
     private boolean shouldBuildHere() {
-        switch (getBuildMode()) {
-            case FILL:
-                return true;
-            case WALLS:
-                return onOuterFace();
-            case FRAME:
-                return onOuterEdge();
-            default:
-                return false;
-        }
+        return switch (getBuildMode()) {
+            case FILL -> true;
+            case WALLS -> onOuterFace();
+            case FRAME -> onOuterEdge();
+            default -> false;
+        };
     }
 
     private boolean onOuterFace() {
